@@ -1,10 +1,6 @@
 name: Run Scripts
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
   workflow_dispatch:
     inputs:
       script_name:
@@ -17,6 +13,7 @@ on:
           - lint
           - test
           - build
+          - deploy
 
 jobs:
   run-scripts:
@@ -30,25 +27,34 @@ jobs:
           python-version: '3.9'
           
       - name: 의존성 설치
-        run: pip install -r requirements.txt
-        
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
       - name: 스크립트 실행 권한 설정
         run: chmod +x scripts/*
         
       - name: 선택된 스크립트 실행
+        env:
+          SCRIPT_NAME: ${{ github.event.inputs.script_name }}
         run: |
-          if [ "${{ github.event.inputs.script_name }}" = "all" ]; then
+          if [ "$SCRIPT_NAME" = "all" ]; then
             for script in scripts/*.sh; do
-              if [ -f "$script" ] && [ -x "$script" ]; then
+              if [ -f "$script" ]; then
                 echo "Running $script"
-                $script
+                bash "$script"
               fi
             done
-          else
-            if [ -f "scripts/${{ github.event.inputs.script_name }}.sh" ]; then
-              ./scripts/${{ github.event.inputs.script_name }}.sh
+          elif [ -n "$SCRIPT_NAME" ]; then
+            script_path="scripts/${SCRIPT_NAME}.sh"
+            if [ -f "$script_path" ]; then
+              echo "Running $script_path"
+              bash "$script_path"
             else
-              echo "Script scripts/${{ github.event.inputs.script_name }}.sh not found"
+              echo "Error: Script $script_path not found"
               exit 1
             fi
+          else
+            echo "Error: No script name provided"
+            exit 1
           fi
