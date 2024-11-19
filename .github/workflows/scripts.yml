@@ -5,7 +5,6 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
-  # 수동 실행 옵션 추가
   workflow_dispatch:
     inputs:
       script_name:
@@ -31,24 +30,25 @@ jobs:
           python-version: '3.9'
           
       - name: 의존성 설치
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          
+        run: pip install -r requirements.txt
+        
       - name: 스크립트 실행 권한 설정
-        run: |
-          chmod +x scripts/*
-          
+        run: chmod +x scripts/*
+        
       - name: 선택된 스크립트 실행
         run: |
           if [ "${{ github.event.inputs.script_name }}" = "all" ]; then
-            for script in scripts/*; do
+            for script in scripts/*.sh; do
               if [ -f "$script" ] && [ -x "$script" ]; then
                 echo "Running $script"
                 $script
               fi
             done
           else
-            echo "Running scripts/${{ github.event.inputs.script_name }}.sh"
-            ./scripts/${{ github.event.inputs.script_name }}.sh
-          fi 
+            if [ -f "scripts/${{ github.event.inputs.script_name }}.sh" ]; then
+              ./scripts/${{ github.event.inputs.script_name }}.sh
+            else
+              echo "Script scripts/${{ github.event.inputs.script_name }}.sh not found"
+              exit 1
+            fi
+          fi
