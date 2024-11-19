@@ -1,0 +1,25 @@
+Framework: unittest
+Pipline: build
+Project_Root: /Users/jeondonghwan/Desktop/CCProject
+Remote_Repo: ''
+ci_tool: GitHub Actions
+python_version: 3.x
+ci_cd:
+  base_url: "https://api.github.com"
+  token: "your_github_token"
+
+repository:
+  owner: "your_repo_owner"
+  name: "your_repo_name"
+
+environments:
+  dev:
+    branch: "development"
+  prod:
+    branch: "main"
+
+output:
+  details: true
+
+pipeline:
+  fetch_job_details: true

@@ -1,0 +1,29 @@
+# 모든 파일과 폴더를 기본적으로 무시
+*
+*/
+
+# src 폴더 허용
+!src/
+!src/**
+
+# docs 폴더 허용
+!docs/
+!docs/**
+
+# README 파일 허용
+!README.md
+
+# requirements 파일 허용
+!requirements.txt
+
+# .gitignore 자체는 허용
+!.gitignore
+
+# src 내부에서 제외할 것들
+src/ci_cd_tool/build/
+src/ci_cd_tool/ci_cd_tool.egg-info/
+src/ci_cd_tool/dist/
+src/ci_cd_tool.egg-info
+**/__pycache__/
+**/*.pyc
+

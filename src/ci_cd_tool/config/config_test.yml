@@ -1,0 +1,11 @@
+Framework: unittest
+Pipline: build
+Project_Root: ''
+ci_tool:
+  name: Github Actions
+  version: 1.0
+  venv: requirements.txt
+git:
+  username: 'LETUED'
+  key: 'github_token'
+gitlab_stages: test

@@ -1,0 +1,30 @@
+[build-system]
+requires = [
+    "setuptools>=42",  # 최소 setuptools 버전
+    "wheel"             # wheel 패키지 (빌드용)
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ci-cd-tool"
+version = "0.2.9"
+description = "A CI/CD command line tool"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "click>=8.0.3,<9.0.0",
+    "pyyaml>=6.0,<7.0",
+    "pygithub>=1.55,<2.0",
+    "python-gitlab>=3.0.0,<4.0.0",
+    "rich>=10.0.0,<11.0.0",
+    "requests>=2.26.0,<3.0.0"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0"
+]
+
+[project.scripts]
+cc = "ci_cd_tool.cli:main"  # main 함수가 포함된 경로로 수정 필요
