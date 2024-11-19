@@ -22,15 +22,16 @@ jobs:
       - uses: actions/checkout@v3
       
       - name: Python 설정
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
+          cache: 'pip'
           
       - name: 의존성 설치
         run: |
-          python -m pip install --upgrade pip
-          pip install build twine pytest pytest-cov flake8 black isort
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements-dev.txt
+          pip install build twine
           pip install -e .
           
       - name: 스크립트 실행 권한 설정
