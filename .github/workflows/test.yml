@@ -14,10 +14,10 @@ jobs:
         python-version: [3.8, 3.9]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Python ${{ matrix.python-version }} 설정
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     
@@ -27,16 +27,6 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-cov flake8 black isort
         pip install -e .
-        
-    - name: 스크립트 실행
-      run: |
-        chmod +x scripts/*
-        if [ -f "scripts/test.sh" ]; then
-          ./scripts/test.sh
-        fi
-        if [ -f "scripts/lint.sh" ]; then
-          ./scripts/lint.sh
-        fi
         
     - name: 테스트 실행
       run: |
