@@ -6,6 +6,10 @@
 !src/
 !src/**
 
+# tests 폴더 허용 (테스트 실행을 위해 필요)
+!tests/
+!tests/**
+
 # docs 폴더 허용
 !docs/
 !docs/**
@@ -31,13 +35,15 @@
 !scripts/
 !scripts/**
 
-# src 내부에서 제외할 것들
-src/ci_cd_tool/build/
-src/ci_cd_tool/ci_cd_tool.egg-info/
-src/ci_cd_tool/dist/
-src/ci_cd_tool.egg-info
+# 빌드 관련 파일 제외
+build/
+dist/
+*.egg-info/
 **/__pycache__/
 **/*.pyc
+.coverage
+coverage.xml
+.pytest_cache/
 
 
 
