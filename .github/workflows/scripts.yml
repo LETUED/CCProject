@@ -29,7 +29,9 @@ jobs:
       - name: 의존성 설치
         run: |
           python -m pip install --upgrade pip
+          pip install build twine pytest pytest-cov flake8 black isort
           pip install -r requirements.txt
+          pip install -e .
           
       - name: 스크립트 실행 권한 설정
         run: chmod +x scripts/*
@@ -37,6 +39,7 @@ jobs:
       - name: 선택된 스크립트 실행
         env:
           SCRIPT_NAME: ${{ github.event.inputs.script_name }}
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           if [ "$SCRIPT_NAME" = "all" ]; then
             for script in scripts/*.sh; do
