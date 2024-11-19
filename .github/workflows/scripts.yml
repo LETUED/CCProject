@@ -1,0 +1,54 @@
+name: Run Scripts
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  # 수동 실행 옵션 추가
+  workflow_dispatch:
+    inputs:
+      script_name:
+        description: '실행할 스크립트 이름'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - lint
+          - test
+          - build
+
+jobs:
+  run-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Python 설정
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: 의존성 설치
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: 스크립트 실행 권한 설정
+        run: |
+          chmod +x scripts/*
+          
+      - name: 선택된 스크립트 실행
+        run: |
+          if [ "${{ github.event.inputs.script_name }}" = "all" ]; then
+            for script in scripts/*; do
+              if [ -f "$script" ] && [ -x "$script" ]; then
+                echo "Running $script"
+                $script
+              fi
+            done
+          else
+            echo "Running scripts/${{ github.event.inputs.script_name }}.sh"
+            ./scripts/${{ github.event.inputs.script_name }}.sh
+          fi 

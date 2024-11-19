@@ -10,6 +10,11 @@
 !docs/
 !docs/**
 
+# GitHub Actions 워크플로우 허용
+!.github/
+!.github/workflows/
+!.github/workflows/*.yml
+
 # README 파일 허용
 !README.md
 
@@ -18,6 +23,13 @@
 
 # .gitignore 자체는 허용
 !.gitignore
+
+# pyproject.toml 허용
+!pyproject.toml
+
+# scripts 폴더 허용
+!scripts/
+!scripts/**
 
 # src 내부에서 제외할 것들
 src/ci_cd_tool/build/

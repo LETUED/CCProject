@@ -1,0 +1,49 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Python 설정
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: 의존성 설치
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+          
+      - name: 버전 확인
+        id: get_version
+        run: |
+          version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' pyproject.toml)
+          echo "version=$version" >> $GITHUB_ENV
+          
+      - name: 패키지 빌드
+        run: |
+          python -m build
+          
+      - name: PyPI 배포
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          twine upload dist/*
+          
+      - name: GitHub Release 생성
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.version }}
+          release_name: Release v${{ env.version }}
+          draft: false
+          prerelease: false 
