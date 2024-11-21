@@ -6,13 +6,13 @@ from typing import Optional, List
 
 # 템플릿 관련 모듈
 class TemplateManager:
-    def __init__(self, ci_tool, config_data):
+    def __init__(self, ci_tool: str, config_data: dict):
         self.ci_tool = ci_tool
         self.config_data = config_data
-        self.project_root = config_data.get('Project_Root', '.')
+        self.project_root = config_data.get('project_root', '.')
         self.template_filename = f"{ci_tool.lower()}_ci.yml"
         self.output_file = os.path.join(self.project_root, self.template_filename)
-        self.templates_path = "CCproject/ci_cd_tool/templates/templates"
+        self.templates_path = os.path.join(self.project_root, ".cc/templates")
         self.default_template_file = os.path.join(self.templates_path, f"{ci_tool.lower()}.yml")
 
     def create_template(self):

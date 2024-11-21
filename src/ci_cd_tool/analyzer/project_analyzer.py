@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 from pathlib import Path
+import os
 from rich.console import Console
 from ..core.exceptions import ProjectConfigError
 
@@ -25,21 +26,99 @@ class ProjectAnalyzer:
         self.console = console
 
     def analyze(self, project_path: str = ".") -> ProjectStructure:
-        """
-        프로젝트 구조를 분석하고 결과를 반환합니다.
-        
-        Args:
-            project_path: 분석할 프로젝트 경로
-            
-        Returns:
-            ProjectStructure: 분석된 프로젝트 구조 정보
-            
-        Raises:
-            ProjectConfigError: 프로젝트 설정이 잘못된 경우
-        """
+        """프로젝트 구조를 분석하고 결과를 반환"""
         path = Path(project_path)
         self._validate_project_requirements(path)
         return self._analyze_project_structure(path)
+
+    def _analyze_project_structure(self, path: Path) -> ProjectStructure:
+        """프로젝트 구조 분석"""
+        language = self._detect_language(path)
+        framework = self._detect_framework(path)
+        test_framework = self._detect_test_framework(path)
+        dependencies = self._get_dependencies(path)
+        ci_provider = self._detect_ci_provider(path)
+        branch_strategy = self._detect_branch_strategy(path)
+        
+        return ProjectStructure(
+            language=language,
+            framework=framework,
+            test_framework=test_framework,
+            dependencies=dependencies,
+            ci_provider=ci_provider,
+            branch_strategy=branch_strategy
+        )
+
+    def _detect_language(self, path: Path) -> str:
+        """프로젝트 주 언어 감지"""
+        if (path / "requirements.txt").exists() or (path / "setup.py").exists():
+            return "Python"
+        elif (path / "package.json").exists():
+            return "JavaScript/TypeScript"
+        elif (path / "pom.xml").exists():
+            return "Java"
+        return "Unknown"
+
+    def _detect_framework(self, path: Path) -> Optional[str]:
+        """프레임워크 감지"""
+        if self._has_dependency(path, ["django"]):
+            return "Django"
+        elif self._has_dependency(path, ["flask"]):
+            return "Flask"
+        elif self._has_dependency(path, ["fastapi"]):
+            return "FastAPI"
+        return None
+
+    def _detect_test_framework(self, path: Path) -> Optional[str]:
+        """테스트 프레임워크 감지"""
+        if self._has_dependency(path, ["pytest"]):
+            return "pytest"
+        elif self._has_dependency(path, ["unittest"]):
+            return "unittest"
+        return None
+
+    def _detect_ci_provider(self, path: Path) -> Optional[str]:
+        """CI 제공자 감지"""
+        if (path / ".github" / "workflows").exists():
+            return "GitHub Actions"
+        elif (path / ".gitlab-ci.yml").exists():
+            return "GitLab CI"
+        elif (path / "Jenkinsfile").exists():
+            return "Jenkins"
+        return None
+
+    def _detect_branch_strategy(self, path: Path) -> Optional[str]:
+        """브랜치 전략 감지"""
+        try:
+            from git import Repo
+            repo = Repo(path)
+            branches = [b.name for b in repo.branches]
+            
+            if "develop" in branches:
+                return "GitFlow"
+            elif "main" in branches:
+                return "GitHub Flow"
+        except:
+            pass
+        return None
+
+    def _has_dependency(self, path: Path, dependencies: List[str]) -> bool:
+        """특정 의존성 존재 여부 확인"""
+        req_file = path / "requirements.txt"
+        if req_file.exists():
+            content = req_file.read_text().lower()
+            return any(dep.lower() in content for dep in dependencies)
+        return False
+
+    def _get_dependencies(self, path: Path) -> List[str]:
+        """프로젝트 의존성 목록 추출"""
+        dependencies = []
+        req_file = path / "requirements.txt"
+        if req_file.exists():
+            with open(req_file) as f:
+                dependencies = [line.strip() for line in f if line.strip() 
+                              and not line.startswith('#')]
+        return dependencies
 
     def _validate_project_requirements(self, path: Path) -> None:
         missing = self._get_missing_requirements(path)

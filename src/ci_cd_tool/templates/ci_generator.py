@@ -9,7 +9,7 @@ from ..analyzer.project_analyzer import ProjectStructure
 from ..core.exceptions import GitHubError, ConfigurationError
 from .template_content_generator import TemplateContentGenerator
 from .git_manager import GitManager
-from .template_manager import TemplateManager
+from ..ci.template_manager import TemplateManager
 
 class CIGenerator:
     def __init__(self, structure: ProjectStructure):
@@ -33,7 +33,11 @@ class CIGenerator:
             
             # 4. Git 커밋 및 푸시
             if output_file:
-                git_manager = GitManager(ci_tool, output_file, config_data['project_root'])
+                git_manager = GitManager(
+                    ci_tool=ci_tool,
+                    template_file=output_file,
+                    project_root=config_data['project_root']
+                )
                 git_manager.commit_and_push()
             
             return [output_file] if output_file else []
@@ -57,13 +61,13 @@ class CIGenerator:
             pass
         return 'github'  # 기본값
 
-    def _prepare_config_data(self) -> Dict:
-        """CI 설정 데이터 준비"""
+    def _prepare_config_data(self) -> dict:
+        """CI/CD 설정에 필요한 데이터 준비"""
         return {
             'project_root': '.',
             'language': self.structure.language,
             'framework': self.structure.framework,
             'test_framework': self.structure.test_framework,
-            'package_manager': self.structure.package_manager,
-            'pipeline_stages': ['build', 'test', 'deploy']
-        } 
+            'dependencies': self.structure.dependencies,
+            'package_manager': self.structure.package_manager
+        }

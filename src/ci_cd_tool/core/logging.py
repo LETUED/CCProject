@@ -1,36 +1,37 @@
 import logging
-from pathlib import Path
 from rich.logging import RichHandler
-from typing import Optional
+from pathlib import Path
 
-class LogManager:
-    """로깅 관리 클래스"""
+def setup_logging(
+    log_level: str = "INFO",
+    log_file: str = ".cc/cc.log"
+) -> None:
+    """
+    로깅 설정
     
-    def __init__(
-        self,
-        log_dir: str = "logs",
-        log_level: str = "INFO",
-        log_format: Optional[str] = None
-    ):
-        self.log_dir = Path(log_dir)
-        self.log_level = getattr(logging, log_level.upper())
-        self.log_format = log_format or (
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+    Args:
+        log_level: 로그 레벨 (기본값: INFO)
+        log_file: 로그 파일 경로 (기본값: .cc/cc.log)
+    """
+    # 로그 디렉토리 생성
+    log_path = Path(log_file)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
     
-    def setup(self) -> None:
-        """로깅 설정"""
-        self.log_dir.mkdir(parents=True, exist_ok=True)
-        
-        logging.basicConfig(
-            level=self.log_level,
-            format=self.log_format,
-            handlers=[
-                RichHandler(rich_tracebacks=True),
-                logging.FileHandler(self.log_dir / "ci_cd_tool.log")
-            ]
-        )
-        
-        # 서드파티 로깅 레벨 조정
-        for logger_name in ["urllib3", "github", "gitlab"]:
-            logging.getLogger(logger_name).setLevel(logging.WARNING)
+    # 로그 포맷 설정
+    format_string = "%(asctime)s | %(levelname)s | %(message)s"
+    
+    # 기본 로깅 설정
+    logging.basicConfig(
+        level=log_level,
+        format=format_string,
+        handlers=[
+            # 콘솔 출력용 Rich 핸들러
+            RichHandler(rich_tracebacks=True),
+            # 파일 출력용 핸들러
+            logging.FileHandler(log_file)
+        ]
+    )
+    
+    # 로거 가져오기
+    logger = logging.getLogger("ci_cd_tool")
+    logger.setLevel(log_level)

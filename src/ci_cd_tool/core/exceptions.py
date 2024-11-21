@@ -11,23 +11,28 @@ class ConfigurationError(CLIError):
     """설정 관련 에러"""
     pass
 
+class ConfigError(CLIError):
+    """설정 파일 관련 에러"""
+    pass
+
 class GitHubError(CLIError):
-    """GitHub 연동 관련 에러"""
+    """GitHub 관련 에러"""
     pass
 
 class ProjectConfigError(CLIError):
     """프로젝트 설정 관련 에러"""
     pass
 
-class NoGitRepositoryError(ProjectConfigError):
-    """Git 저장소가 없을 때 발생하는 에러"""
+class CIServiceError(CLIError):
+    """CI 서비스 관련 에러"""
     pass
 
-class NoDependencyFileError(ProjectConfigError):
-    """의존성 파일이 없을 때 발생하는 에러"""
+class TemplateError(CLIError):
+    """템플릿 관련 에러"""
     pass
 
 def error_handler(console: Optional[Console] = None):
+    """에러 처리 데코레이터"""
     if console is None:
         console = Console()
         

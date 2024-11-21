@@ -23,7 +23,7 @@ class ToolConfig:
     git_branch: Optional[str] = "main"
     environment: Optional[str] = "development"
 
-class ConfigManager:
+class ConfigurationManager:
     """설정 관리 클래스"""
     
     def __init__(self, config_path: str = ".cc/config.yml"):
@@ -53,13 +53,14 @@ class ConfigManager:
             raise ConfigError(f"설정 저장 실패: {str(e)}")
 
     def show(self):
+        """현재 설정 표시"""
         config = self.load()
         if config:
             config_text = "\n".join(
                 f"[bold]{k}:[/bold] {v}" 
                 for k, v in config.items()
             )
-            self.console.print(Panel(
+            console.print(Panel(
                 config_text,
                 title="[green bold]Config 설정 정보[/]",
                 border_style="green"
@@ -69,7 +70,7 @@ class ConfigManager:
 # 설정 파일 값 변경 기능
 def change_config(key, value):
     """설정 파일의 특정 값을 변경"""
-    config_manager = ConfigManager()
+    config_manager = ConfigurationManager()
     config = config_manager.load()
     config_dict = config.to_dict()
     config_dict[key] = value
@@ -80,6 +81,6 @@ def change_config(key, value):
 # 설정 파일 초기화 기능
 def reset_config():
     """설정 파일 초기화"""
-    config_manager = ConfigManager()
+    config_manager = ConfigurationManager()
     config_manager.save(Configuration.from_dict({}))
     click.echo(f"{CONFIG_FILE} 파일이 초기화되었습니다.")

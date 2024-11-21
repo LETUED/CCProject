@@ -9,7 +9,7 @@ class TemplateManager:
 
     def create_template(self) -> Optional[str]:
         """CI/CD 템플릿 파일을 생성하고 파일 경로를 반환합니다."""
-        if self.ci_tool == "github":
+        if self.ci_tool == "GitHub Actions":
             return self._create_github_workflow()
         elif self.ci_tool == "gitlab":
             return self._create_gitlab_ci()
@@ -23,7 +23,7 @@ class TemplateManager:
         workflows_dir = Path(".github/workflows")
         workflows_dir.mkdir(parents=True, exist_ok=True)
         
-        template_content = TemplateContentGenerator.get_content("github")
+        template_content = TemplateContentGenerator.get_content("GitHub Actions")
         output_file = workflows_dir / "ci.yml"
         output_file.write_text(template_content)
         return str(output_file)

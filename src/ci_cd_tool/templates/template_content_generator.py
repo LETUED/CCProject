@@ -5,7 +5,7 @@ class TemplateContentGenerator:
     def get_content(ci_tool: str) -> str:
         """CI 도구별 기본 템플릿 내용 반환"""
         templates = {
-            "github": """
+            "GitHub Actions": """
 name: CI Pipeline
 
 on:
@@ -80,4 +80,4 @@ pipeline {
 }
 """
         }
-        return templates.get(ci_tool.lower(), "# Unsupported CI tool") 
+        return templates.get(ci_tool, "# Unsupported CI tool") 
