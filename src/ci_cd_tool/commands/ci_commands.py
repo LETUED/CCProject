@@ -3,6 +3,8 @@ from ..core.container import Container
 from ..core.exceptions import error_handler
 from ..services.test_service import TestConfig
 from rich.console import Console
+from typing import Optional
+from ..services.test_manager import TestManager
 
 @click.group(name='ci')
 def ci_group():
@@ -14,22 +16,39 @@ def ci_group():
     pass
 
 @ci_group.command(name='test')
-@click.option('--env', default='staging', help='테스트 실행 환경 설정')
-@click.option('--fast', is_flag=True, help='빠른 테스트 모드로 일부 테스트만 실행')
-@click.option('--report', is_flag=True, help='테스트 결과 리포트를 생성')
+@click.argument('module', required=False)
+@click.option('--pattern', help='테스트 파일 패턴 (예: test_login*)')
+@click.option('--report', is_flag=True, help='테스트 결과 리포트 생성')
+@click.option('--env', default='staging', help='테스트 환경 (staging/production)')
 @error_handler()
-def test(env: str, fast: bool, report: bool):
-    """테스트 실행"""
-    container = Container()
-    test_service = container.test_service()
+def test(module: Optional[str], pattern: Optional[str], report: bool, env: str):
+    """테스트 실행
     
-    config = TestConfig(
-        env=env,
-        fast=fast,
-        report=report
-    )
+    MODULE이 지정되면 해당 모듈의 테스트만 실행합니다.
+    지정하지 않으면 전체 테스트를 실행합니다.
+    """
+    console = Console()
+    test_manager = TestManager(console)
     
-    test_service.run_tests(config)
+    if not test_manager.run_tests(module, pattern, env):
+        raise click.ClickException("테스트 실행 실패")
+
+@ci_group.command(name='test-init')
+@error_handler()
+def test_init():
+    """테스트 디렉토리 구조 초기화"""
+    console = Console()
+    test_manager = TestManager(console)
+    test_manager.init_structure()
+
+@ci_group.command(name='test-add')
+@click.argument('module')
+@error_handler()
+def test_add(module: str):
+    """새로운 테스트 모듈 추가"""
+    console = Console()
+    test_manager = TestManager(console)
+    test_manager.create_module(module)
 
 @ci_group.command(name='status')
 @click.option('--env', help='상태를 확인할 환경 설정 / Environment to check status')

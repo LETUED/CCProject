@@ -31,6 +31,14 @@ class TemplateError(CLIError):
     """템플릿 관련 에러"""
     pass
 
+class CCError(Exception):
+    """기본 예외 클래스"""
+    pass
+
+class TestError(CCError):
+    """테스트 관련 예외 클래스"""
+    pass
+
 def error_handler(console: Optional[Console] = None):
     """에러 처리 데코레이터"""
     if console is None:

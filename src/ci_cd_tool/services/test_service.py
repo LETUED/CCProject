@@ -19,19 +19,18 @@ class TestService:
         
     def run_tests(self, config: TestConfig):
         """테스트 실행"""
+        if not self._validate_test_directory(config.test_dir):
+            return False
+            
         self.console.print("[green]테스트 실행 중...[/green]")
+        self.console.print(f"[blue]환경: {config.env}[/blue]")
         
-        if config.env:
-            self.console.print(f"[blue]환경: {config.env}[/blue]")
+        result = self._execute_tests(config.test_dir)
         
-        if config.fast:
-            self.console.print("[yellow]빠른 테스트 모드[/yellow]")
-            
         if config.report:
-            self.console.print("[blue]테스트 리포트 생성[/blue]")
+            self._generate_report(config.test_dir)
             
-        # 실제 테스트 실행 로직
-        self.console.print(f"[green]테스트 디렉토리: {config.test_dir}[/green]")
+        return result.wasSuccessful()
 
     def _validate_test_directory(self, test_dir: str) -> bool:
         if not os.path.exists(test_dir):

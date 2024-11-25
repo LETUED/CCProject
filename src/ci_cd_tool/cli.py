@@ -4,6 +4,7 @@ from .commands.init_commands import init
 from .commands.ci_commands import ci_group
 from .commands.cd_commands import cd_group
 from .commands.config_commands import config_group
+from .commands.test_commands import test_group
 from .core.logging import setup_logging
 
 @click.group()
@@ -17,6 +18,7 @@ main.add_command(init)
 main.add_command(ci_group)
 main.add_command(cd_group)
 main.add_command(config_group)
+main.add_command(test_group)
 
 if __name__ == "__main__":
     main()

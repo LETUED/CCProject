@@ -50,9 +50,6 @@ cc config reset         # 설정 초기화
 ```bash
 # 새 프로젝트 초기화
 cc init
-
-# 기존 설정 덮어쓰기
-cc init --force
 ```
 
 2. **CI 파이프라인 관리**
