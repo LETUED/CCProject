@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "ci_cd_tool"
@@ -21,21 +21,28 @@ dependencies = [
     "click>=8.1.7",
     "rich>=13.7.0",
     "dependency-injector>=4.41.0",
-    "pyyaml>=6.0.1",
+    "pyyaml>=6.0.1", 
     "python-dotenv>=1.0.0",
-    "requests>=2.31.0"
+    "requests>=2.31.0",
+    "GitPython>=3.1.0",
+    "coverage>=7.4.0",
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.12.0",
+    "isort>=5.13.0",
+    "flake8>=7.0.0"
 ]
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/ci_cd_tool"]
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["ci_cd_tool"]
 
 [project.scripts]
 cc = "ci_cd_tool.cli:main"
 
-[tool.black]
-line-length = 88
-target-version = ['py38']
-
-[tool.isort]
-profile = "black"
-multi_line_output = 3
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --cov=src/ci_cd_tool"
+testpaths = [
+    "tests"
+]

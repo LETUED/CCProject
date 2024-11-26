@@ -6,6 +6,9 @@ from ..analyzer.project_analyzer import ProjectAnalyzer
 from ..templates.ci_generator import CIGenerator
 from ..core.exceptions import error_handler
 from ..core.logging import setup_logging
+from ..config.config_manager import ConfigurationManager
+from ..config.manager import ConfigManager
+from pathlib import Path
 
 # 로깅 설정
 setup_logging()
@@ -40,7 +43,10 @@ def init(force: bool):
     console.print(table)
     
     # 3. 기존 설정 확인
-    if structure.ci_provider and not force:
+    config_manager = ConfigManager()
+    ci_config = config_manager.get_section_config('ci')
+    
+    if ci_config and not force:
         if not Confirm.ask("[yellow]이미 CI 설정이 존재합니다. 덮어쓰시겠습니까?[/yellow]"):
             console.print("[yellow]설정을 유지합니다.[/yellow]")
             return False
@@ -50,22 +56,25 @@ def init(force: bool):
         with console.status("[bold blue]CI/CD 설정 생성 중...[/bold blue]"):
             generator = CIGenerator(structure)
             files_created = generator.generate()
+            
+            # 설정 저장
+            if config_manager.update_config({
+                'ci': {
+                    'provider': structure.ci_provider,
+                    'branch_strategy': structure.branch_strategy,
+                    'language': structure.language,
+                    'framework': structure.framework,
+                    'test_framework': structure.test_framework,
+                    'project_root': str(Path.cwd()),
+                    'pipeline_stages': []
+                }
+            }, force=force):
+                console.print("[green]CI/CD 설정이 저장되었습니다[/green]")
+                return True
+            else:
+                console.print("[red]CI/CD 설정 저장 중 오류가 발생했습니다[/red]")
+                return False
+                
     except Exception as e:
         console.print(f"[red]CI/CD 설정 생성 중 오류 발생: {str(e)}[/red]")
-        return False
-    
-    # 5. 결과 출력
-    if files_created:
-        console.print("\n[bold green]✨ CI/CD 설정이 완료되었습니다![/bold green]")
-        for file in files_created:
-            console.print(f"📄 생성된 파일: {file}")
-        
-        # 6. 다음 단계 안내
-        console.print("\n[bold blue]🚀 다음 단계:[/bold blue]")
-        console.print("1. git add . 로 생성된 파일들을 스테이징")
-        console.print("2. git commit -m 'chore: Add CI/CD configuration'")
-        console.print("3. git push 로 변경사항을 원격 저장소에 푸시")
-        return True
-    else:
-        console.print("[yellow]생성된 파일이 없습니다.[/yellow]")
         return False

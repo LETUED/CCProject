@@ -15,30 +15,18 @@ class TestRunner:
         pattern: str = "test_*.py",
         markers: Optional[List[str]] = None
     ) -> bool:
-        """
-        테스트 실행
-        
-        Args:
-            test_path: 테스트 경로
-            pattern: 테스트 파일 패턴
-            markers: pytest 마커
-            
-        Returns:
-            bool: 테스트 성공 여부
-        """
+        """테스트 실행"""
         try:
-            cmd = ["pytest"]
+            import unittest
             
-            if test_path:
-                cmd.append(str(Path(test_path)))
+            loader = unittest.TestLoader()
+            start_dir = test_path or str(self.project_root)
+            suite = loader.discover(start_dir=start_dir, pattern=pattern)
             
-            if markers:
-                cmd.extend(["-m", " or ".join(markers)])
+            runner = unittest.TextTestRunner(verbosity=2)
+            result = runner.run(suite)
             
-            cmd.extend(["--cov", "--cov-report=term-missing"])
-            
-            result = subprocess.run(cmd, cwd=self.project_root)
-            return result.returncode == 0
+            return result.wasSuccessful()
             
         except Exception as e:
             raise TestError(f"테스트 실행 실패: {str(e)}") 

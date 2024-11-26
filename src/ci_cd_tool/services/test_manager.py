@@ -7,6 +7,7 @@ from ..core.exceptions import TestError
 import yaml
 import os
 from git import Repo
+from ..config.manager import ConfigManager
 
 class TestManager:
     def __init__(self, console: Console):
@@ -14,6 +15,7 @@ class TestManager:
         self.config_file = Path(".cc/test_config.yml")
         self.unittest_dir = Path("unittest")
         self.test_runner = TestRunner()
+        self.config_manager = ConfigManager()
 
     def init_structure(self):
         """테스트 디렉토리 구조 초기화"""
@@ -71,8 +73,7 @@ class TestManager:
             current_branch = repo.active_branch.name
             
             # config.yml에서 환경 설정 로드
-            config_manager = ConfigurationManager()
-            config = config_manager.load()
+            config = self.config_manager.load()
             environments = config.get('environments', {})
             
             # 브랜치 이름으로 환경 찾기
@@ -130,19 +131,23 @@ class TestManager:
     def _create_default_config(self):
         """기본 테스트 설정 파일 생성"""
         if not self.config_file.exists():
-            config = {
-                "test_config": {
-                    "root_dir": "unittest",
-                    "modules": [],
-                    "patterns": ["test_*.py"],
-                    "options": {
-                        "verbosity": 2,
-                        "failfast": False
+            test_config = {
+                'test': {
+                    'root_dir': 'unittest',
+                    'modules': [],
+                    'patterns': ['test_*.py'],
+                    'options': {
+                        'verbosity': 2,
+                        'failfast': False
                     }
                 }
             }
+            # 전역 설정에 테스트 설정 추가
+            self.config_manager.update_config(test_config)
+            
+            # 로컬 프로젝트 설정 파일 생성
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
-            self.config_file.write_text(yaml.dump(config))
+            self.config_file.write_text(yaml.dump(test_config))
 
     def _create_example_test(self):
         """기본 예제 테스트 파일 생성"""
@@ -176,7 +181,14 @@ if __name__ == '__main__':
         """설정 파일의 모듈 목록 업데이트"""
         if self.config_file.exists():
             config = yaml.safe_load(self.config_file.read_text())
-            if module_name not in config["test_config"]["modules"]:
-                config["test_config"]["modules"].append(module_name)
+            if module_name not in config["test"]["modules"]:
+                config["test"]["modules"].append(module_name)
                 self.config_file.write_text(yaml.dump(config))
+                
+                # 전역 설정도 업데이트
+                self.config_manager.update_config({
+                    'test': {
+                        'modules': config["test"]["modules"]
+                    }
+                })
         

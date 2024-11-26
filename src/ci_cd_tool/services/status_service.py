@@ -1,28 +1,24 @@
 from rich.console import Console
-from rich.panel import Panel
 from ..models.pipeline_status import PipelineRun, PipelineSummary
-from typing import List
 
-class StatusDisplayService:
+class StatusService:
     def __init__(self, console: Console):
         self.console = console
-
+    
     def display_summary(self, summary: PipelineSummary):
-        self.console.print(
-            Panel(
-                f"성공: {summary.success_count}, 실패: {summary.failure_count}, "
-                f"진행 중: {summary.in_progress_count}",
-                title="파이프라인 요약",
-                border_style="cyan"
-            )
-        )
-
-    def display_pipeline_run(self, run: PipelineRun, show_details: bool):
-        details_msg = self._format_pipeline_details(run, show_details)
-        self.console.print(
-            Panel(details_msg, title="파이프라인 정보", border_style="yellow")
-        )
-
-    def _format_pipeline_details(self, run: PipelineRun, show_details: bool) -> str:
-        # 상세 정보 포맷팅 로직
-        pass 
+        """파이프라인 요약 정보 표시"""
+        self.console.print("\n[bold]파이프라인 실행 현황[/bold]")
+        self.console.print(f"✅ 성공: {summary.success_count}")
+        self.console.print(f"❌ 실패: {summary.failure_count}")
+        self.console.print(f"⏳ 진행 중: {summary.in_progress_count}\n")
+    
+    def display_pipeline_run(self, run: PipelineRun, details: bool = False):
+        """개별 파이프라인 실행 정보 표시"""
+        status_color = "green" if run.status == "success" else "red"
+        
+        self.console.print(f"[{status_color}]#{run.run_id}[/{status_color}] {run.commit_message}")
+        if details:
+            self.console.print(f"  🔄 상태: {run.status}")
+            self.console.print(f"  👤 실행자: {run.actor}")
+            self.console.print(f"  🕒 시작: {run.created_at}")
+            self.console.print(f"  🔗 링크: {run.run_url}\n")

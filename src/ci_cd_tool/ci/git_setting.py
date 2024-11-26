@@ -3,6 +3,7 @@ import os
 import click
 from dataclasses import dataclass
 from typing import Optional, List
+from ..config.manager import ConfigManager
 
 # 템플릿 관련 모듈
 class TemplateManager:
@@ -178,15 +179,3 @@ class CIConfiguration:
     remote_repo: Optional[str] = None
     python_version: Optional[str] = None
     gitlab_stages: Optional[List[str]] = None
-
-class ConfigurationManager:
-    def __init__(self):
-        self.config = CIConfiguration()
-
-    def save(self):
-        # 설정 저장 로직
-        pass
-
-    def load(self):
-        # 설정 로드 로직
-        pass
