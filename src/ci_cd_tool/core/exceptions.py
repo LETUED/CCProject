@@ -55,32 +55,9 @@ class RollbackError(Exception):
     """롤백 관련 예외"""
     pass
 
-def error_handler(console: Optional[Console] = None):
-    """에러 처리 데코레이터"""
-    if console is None:
-        console = Console()
-        
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except CLIError as e:
-                console.print(Panel(str(e), title="오류", border_style="red"))
-                return False
-            except Exception as e:
-                console.print(Panel(
-                    f"예상치 못한 오류: {str(e)}", 
-                    title="시스템 오류",
-                    border_style="red"
-                ))
-                return False
-        return wrapper
-    return decorator 
-
-def error_handler() -> Callable:
+def error_handler():
     """명령어 에러 처리 데코레이터"""
-    def decorator(f: Callable) -> Callable:
+    def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
             try:
@@ -88,17 +65,6 @@ def error_handler() -> Callable:
             except CommandError as e:
                 click.echo(f"오류: {str(e)}", err=True)
                 return False
-            except Exception as e:
-                click.echo(f"예상치 못한 오류가 발생했습니다: {str(e)}", err=True)
-                return False
-        return wrapper
-    return decorator 
-
-def error_handler():
-    def decorator(f):
-        def wrapper(*args, **kwargs):
-            try:
-                return f(*args, **kwargs)
             except DeployError as e:
                 click.echo(f"배포 오류: {str(e)}", err=True)
                 return False

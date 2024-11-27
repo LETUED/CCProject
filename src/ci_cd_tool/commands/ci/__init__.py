@@ -5,7 +5,7 @@ from .status import status
 
 @click.group(name='ci')
 def ci_group():
-    """CI 관련 명령어 그룹"""
+    """CI(Continuous Integration) 파이프라인 관리"""
     pass
 
 ci_group.add_command(build)

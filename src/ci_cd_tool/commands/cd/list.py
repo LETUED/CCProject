@@ -31,7 +31,7 @@ class ListCommand(BaseCommand):
             self.error(f"버전 목록 조회 중 오류 발생: {str(e)}")
             return False
 
-@click.command()
+@click.command(name='list')
 @click.option('--env', help='환경 지정')
 @error_handler()
 def list_versions(env: Optional[str]):
