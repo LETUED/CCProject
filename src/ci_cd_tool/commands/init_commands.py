@@ -6,8 +6,7 @@ from ..analyzer.project_analyzer import ProjectAnalyzer
 from ..templates.ci_generator import CIGenerator
 from ..core.exceptions import error_handler
 from ..core.logging import setup_logging
-from ..config.config_manager import ConfigurationManager
-from ..config.manager import ConfigManager
+from ..config.config_manager import ConfigManager as ConfigurationManager
 from pathlib import Path
 
 # 로깅 설정
@@ -43,7 +42,7 @@ def init(force: bool):
     console.print(table)
     
     # 3. 기존 설정 확인
-    config_manager = ConfigManager()
+    config_manager = ConfigurationManager()
     ci_config = config_manager.get_section_config('ci')
     
     if ci_config and not force:

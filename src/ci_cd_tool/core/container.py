@@ -5,6 +5,7 @@ from rich.console import Console
 from ..services.status_service import StatusService
 from ..services.test_service import TestService
 from ..services.deploy_service import DeployService
+from .cd import CDService
 
 class Container:
     def __init__(self):
@@ -27,4 +28,7 @@ class Container:
         if not self._deploy_service:
             self._deploy_service = DeployService(self._console)
         return self._deploy_service
+    
+    def cd_service(self) -> CDService:
+        return CDService()
     

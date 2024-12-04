@@ -1,6 +1,6 @@
 import click
 from rich.console import Console
-from .commands import init, ci_group, cd_group, config_group
+from .commands import init, ci_group, cd_group, config_group, src_group
 from .core.logging import setup_logging
 
 @click.group()
@@ -14,6 +14,7 @@ main.add_command(init)
 main.add_command(ci_group)
 main.add_command(cd_group)
 main.add_command(config_group)
+main.add_command(src_group)
 
 if __name__ == "__main__":
     main()

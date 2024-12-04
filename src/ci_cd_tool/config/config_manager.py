@@ -6,10 +6,11 @@ from rich.console import Console
 from rich.panel import Panel
 from pathlib import Path
 from .configuration import Configuration
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 from ..core.exceptions import ConfigError
-from .manager import ConfigManager
+from .storage.base import ConfigStorage
+from .storage.local import LocalConfigStorage
 
 # 설정 파일 경로
 # CONFIG_FILE = "ci_cd_tool/config/config_test.yml"
@@ -24,41 +25,22 @@ class ToolConfig:
     git_branch: Optional[str] = "main"
     environment: Optional[str] = "development"
 
+@dataclass
+class CIConfiguration:
+    project_root: str = ""
+    pipeline_stages: List[str] = None
+    framework: str = ""
+    ci_tool: str = ""
+    remote_repo: Optional[str] = None
+    python_version: Optional[str] = None
+    gitlab_stages: Optional[List[str]] = None
+
 class ConfigurationManager:
-    """설정 관리 클래스"""
-    
-    def __init__(self):
-        self.config_dir = Path.home() / '.cc'
-        self.config_file = self.config_dir / 'config.yml'
-    
-    def load(self):
-        if not self.config_file.exists():
-            return None
+    def __init__(self, storage: Optional[ConfigStorage] = None):
+        self.storage = storage or LocalConfigStorage()
+        self.console = Console()
         
-        with open(self.config_file, 'r') as f:
-            return yaml.safe_load(f)
-            
-    def save(self, config):
-        self.config_dir.mkdir(parents=True, exist_ok=True)
-        with open(self.config_file, 'w') as f:
-            yaml.dump(config, f)
-
-    def update_config(self, new_config: dict, force: bool = False) -> bool:
-        """기존 설정을 유지하면서 새로운 설정으로 업데이트"""
-        current = self.load() or {}
-        if not force:
-            # 기존 설정이 있으면 새로운 설정으로 업데이트
-            for section, values in new_config.items():
-                if section not in current:
-                    current[section] = {}
-                current[section].update(values)
-        else:
-            # 강제 설정이면 완전히 덮어쓰기
-            current = new_config
-            
-        return self.save(current)
-
-    def get_default_config(self) -> dict:
+    def get_default_config(self) -> Dict[str, Any]:
         """기본 설정 템플릿 반환"""
         return {
             'ci': {
@@ -66,7 +48,11 @@ class ConfigurationManager:
                 'branch_strategy': None,
                 'language': None,
                 'framework': None,
-                'test_framework': None
+                'test_framework': None,
+                'python_version': None,
+                'pipeline_stages': [],
+                'project_root': str(Path.cwd()),
+                'remote_repo': None
             },
             'cd': {
                 'environments': {
@@ -86,23 +72,76 @@ class ConfigurationManager:
                         'ami_id': 'ami-0c9c942bd7bf113a2'
                     }
                 }
+            },
+            'test': {
+                'root_dir': 'unittest',
+                'modules': [],
+                'patterns': ['test_*.py'],
+                'options': {
+                    'verbosity': 2,
+                    'failfast': False
+                }
             }
         }
 
-    def show(self):
-        """현재 설정 표시"""
-        config = self.load()
-        if config:
-            config_text = "\n".join(
-                f"[bold]{k}:[/bold] {v}" 
-                for k, v in config.items()
-            )
-            console.print(Panel(
-                config_text,
-                title="[green bold]Config 설정 정보[/]",
-                border_style="green"
-            ))
+    def load(self) -> Optional[Dict[str, Any]]:
+        """설정 로드"""
+        return self.storage.load()
+            
+    def save(self, config: Dict[str, Any]) -> bool:
+        """설정 저장"""
+        return self.storage.save(config)
 
+    def update_config(self, new_config: Dict[str, Any], force: bool = False) -> bool:
+        """설정 업데이트"""
+        current = self.load() or {}
+        if not force:
+            for section, values in new_config.items():
+                if section not in current:
+                    current[section] = {}
+                if isinstance(values, dict):
+                    self._deep_update(current[section], values)
+                else:
+                    current[section] = values
+        else:
+            current = new_config
+        return self.save(current)
+
+    def _deep_update(self, d: dict, u: dict) -> dict:
+        """딕셔너리 깊은 업데이트"""
+        for k, v in u.items():
+            if isinstance(v, dict) and k in d and isinstance(d[k], dict):
+                self._deep_update(d[k], v)
+            else:
+                d[k] = v
+        return d
+
+    def get_section_config(self, section: str, subsection: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        """특정 섹션의 설정 조회"""
+        config = self.load()
+        if not config:
+            return None
+            
+        section_config = config.get(section, {})
+        if subsection:
+            return section_config.get(subsection)
+        return section_config
+
+    def get_ci_config(self) -> CIConfiguration:
+        """CI 설정을 CIConfiguration 객체로 반환"""
+        config = self.get_section_config('ci')
+        if not config:
+            return CIConfiguration()
+            
+        return CIConfiguration(
+            project_root=config.get('project_root', ''),
+            pipeline_stages=config.get('pipeline_stages', []),
+            framework=config.get('framework', ''),
+            ci_tool=config.get('provider', ''),
+            python_version=config.get('python_version'),
+            gitlab_stages=config.get('pipeline_stages'),
+            remote_repo=config.get('remote_repo')
+        )
 
 # 설정 파일 값 변경 기능
 def change_config(key, value):
@@ -118,6 +157,9 @@ def change_config(key, value):
 # 설정 파일 초기화 기능
 def reset_config():
     """설정 파일 초기화"""
-    config_manager = ConfigManager()
+    config_manager = ConfigurationManager()
     config_manager.save({})
     click.echo("설정 파일이 초기화되었습니다.")
+
+# 이전 이름과의 호환성을 위한 별칭
+ConfigManager = ConfigurationManager

@@ -1,0 +1,2 @@
+[console_scripts]
+cc = ci_cd_tool.cli:main

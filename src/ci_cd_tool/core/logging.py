@@ -1,37 +1,52 @@
 import logging
 from rich.logging import RichHandler
 from pathlib import Path
+from typing import Optional
+from dataclasses import dataclass
 
-def setup_logging(
-    log_level: str = "INFO",
+@dataclass
+class LogConfig:
+    level: int = logging.INFO
+    format: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     log_file: str = ".cc/cc.log"
-) -> None:
-    """
-    로깅 설정
-    
-    Args:
-        log_level: 로그 레벨 (기본값: INFO)
-        log_file: 로그 파일 경로 (기본값: .cc/cc.log)
-    """
-    # 로그 디렉토리 생성
-    log_path = Path(log_file)
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-    
-    # 로그 포맷 설정
-    format_string = "%(asctime)s | %(levelname)s | %(message)s"
-    
-    # 기본 로깅 설정
-    logging.basicConfig(
-        level=log_level,
-        format=format_string,
-        handlers=[
-            # 콘솔 출력용 Rich 핸들러
-            RichHandler(rich_tracebacks=True),
-            # 파일 출력용 핸들러
-            logging.FileHandler(log_file)
-        ]
-    )
-    
-    # 로거 가져오기
-    logger = logging.getLogger("ci_cd_tool")
-    logger.setLevel(log_level)
+    use_rich: bool = True
+
+class LoggerFactory:
+    _instance: Optional['LoggerFactory'] = None
+    _loggers = {}
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._setup_root_logger()
+        return cls._instance
+
+    def _setup_root_logger(self):
+        log_path = Path(LogConfig.log_file)
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        handlers = []
+        if LogConfig.use_rich:
+            handlers.append(RichHandler(rich_tracebacks=True))
+        else:
+            handlers.append(logging.StreamHandler())
+        handlers.append(logging.FileHandler(LogConfig.log_file))
+        
+        logging.basicConfig(
+            level=LogConfig.level,
+            format=LogConfig.format,
+            handlers=handlers
+        )
+
+    def get_logger(self, name: str) -> logging.Logger:
+        if name not in self._loggers:
+            logger = logging.getLogger(name)
+            logger.setLevel(LogConfig.level)
+            self._loggers[name] = logger
+        return self._loggers[name]
+
+def setup_logging(log_level: str = "INFO", log_file: str = ".cc/cc.log", use_rich: bool = True) -> None:
+    LogConfig.level = getattr(logging, log_level)
+    LogConfig.log_file = log_file
+    LogConfig.use_rich = use_rich
+    LoggerFactory()

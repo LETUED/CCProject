@@ -54,6 +54,7 @@ class DeployService:
             
         except Exception as e:
             self.console.print(f"[red]배포 실패: {str(e)}[/red]")
+            self.console.print("[yellow]해결 방법:[/yellow] AWS 자격 증명을 확인하고, 올바른 권한이 있는지 확인하세요.")
             return False
     
     def rollback(self, version: str) -> bool:
@@ -64,6 +65,7 @@ class DeployService:
             return True
         except Exception as e:
             self.console.print(f"[red]롤백 실패: {str(e)}[/red]")
+            self.console.print("[yellow]해결 방법:[/yellow] AWS 자격 증명을 확인하고, 올바른 권한이 있는지 확인하세요.")
             return False 
     
     def get_status(self, env: str) -> DeployStatus:
