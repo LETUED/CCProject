@@ -18,3 +18,5 @@ class BaseCI(ABC):
     @abstractmethod
     def get_status(self) -> Dict:
         pass 
+
+# asdasdasdasd
