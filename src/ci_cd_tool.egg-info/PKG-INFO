@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ci_cd_tool
-Version: 0.3.2
+Version: 0.3.1
 Summary: CI/CD 자동화 도구
 Author-email: Your Name <your.email@example.com>
 Classifier: Programming Language :: Python :: 3

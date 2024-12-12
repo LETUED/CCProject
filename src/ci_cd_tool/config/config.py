@@ -1,29 +1,39 @@
-from typing import Any, Dict, Optional
-from .storage.local import LocalConfigStorage
+from dataclasses import dataclass
+from typing import Dict, Optional
+import yaml
+import os
+from pathlib import Path
 
+@dataclass
 class Config:
-    """설정 관리 클래스"""
-    
-    def __init__(self, storage=None):
-        self.storage = storage or LocalConfigStorage()
-        self._config = None
-    
-    @property
-    def config(self) -> Dict[str, Any]:
-        """설정 로드"""
-        if self._config is None:
-            self._config = self.storage.load() or {}
-        return self._config
-    
-    def get(self, key: str, default: Any = None) -> Any:
-        """설정값 조회"""
-        return self.config.get(key, default)
-    
-    def set(self, key: str, value: Any) -> bool:
-        """설정값 저장"""
-        self.config[key] = value
-        return self.storage.save(self.config)
-    
-    def get_aws_credentials(self) -> Optional[Dict[str, str]]:
-        """AWS 자격 증명 조회"""
-        return self.storage.get_aws_credentials() 
+    """CI/CD 도구 설정"""
+    ci_provider: str = "github"
+    cd_provider: str = "github"
+    project_name: str = ""
+    repository_url: str = ""
+    environment: str = "development"
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'Config':
+        return cls(
+            ci_provider=data.get('ci', {}).get('provider', 'github'),
+            cd_provider=data.get('cd', {}).get('provider', 'github'),
+            project_name=data.get('project', {}).get('name', ''),
+            repository_url=data.get('project', {}).get('repository', ''),
+            environment=data.get('environment', 'development')
+        )
+
+    def to_dict(self) -> Dict:
+        return {
+            'ci': {
+                'provider': self.ci_provider
+            },
+            'cd': {
+                'provider': self.cd_provider
+            },
+            'project': {
+                'name': self.project_name,
+                'repository': self.repository_url
+            },
+            'environment': self.environment
+        }

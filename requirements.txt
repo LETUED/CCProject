@@ -1,13 +1,12 @@
 backports.tarfile==1.2.0
 blessed==1.20.0
-boto3==1.21.0
-botocore==1.24.46
+boto3>=1.26.0,<1.27.0
+botocore>=1.26.0
 build==1.2.2.post1
 cachetools==5.5.0
 certifi==2024.8.30
 cffi==1.17.1
 charset-normalizer==2.0.12
--e git+ssh://git@github.com/LETUED/CCProject.git@84f6f8969f7c29323dc1d18996d209485d3face0#egg=ci_cd_tool
 click==8.0.3
 coverage==7.6.7
 dependency-injector==4.43.0
@@ -67,7 +66,7 @@ rfc3986==2.0.0
 rich==13.8.1
 rsa==4.9
 runs==1.2.2
-s3transfer==0.5.2
+s3transfer>=0.6.0,<0.7.0
 six==1.16.0
 smmap==5.0.1
 tomli==2.1.0
@@ -77,3 +76,8 @@ wcwidth==0.2.13
 wrapt==1.16.0
 xmod==1.8.1
 zipp==3.20.2
+click>=8.0.0
+rich>=10.0.0
+PyYAML>=5.4.1
+boto3>=1.26.0
+GitPython>=3.1.0

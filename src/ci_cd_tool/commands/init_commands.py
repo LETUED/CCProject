@@ -43,37 +43,41 @@ def init(force: bool):
     
     # 3. 기존 설정 확인
     config_manager = ConfigurationManager()
-    ci_config = config_manager.get_section_config('ci')
+    existing_config = config_manager.load()
     
-    if ci_config and not force:
-        if not Confirm.ask("[yellow]이미 CI 설정이 존재합니다. 덮어쓰시겠습니까?[/yellow]"):
+    if existing_config and not force:
+        if not Confirm.ask("[yellow]이미 설정이 존재합니다. 덮어쓰시겠습니까?[/yellow]"):
             console.print("[yellow]설정을 유지합니다.[/yellow]")
             return False
     
-    # 4. CI/CD 설정 파일 생성
+    # 4. 설정 저장
     try:
-        with console.status("[bold blue]CI/CD 설정 생성 중...[/bold blue]"):
-            generator = CIGenerator(structure)
-            files_created = generator.generate()
+        config = {
+            'ci': {
+                'provider': structure.ci_provider,
+                'branch_strategy': structure.branch_strategy,
+                'language': structure.language,
+                'framework': structure.framework,
+                'test_framework': structure.test_framework,
+                'project_root': str(Path.cwd())
+            },
+            'repository': {
+                'owner': '',  # GitHub 사용자명 설정 필요
+                'name': Path.cwd().name  # 현재 디렉토리 이름을 저장소 이름으로 사용
+            }
+        }
+        
+        if config_manager.save(config):
+            console.print("[green]✨ CI/CD 설정이 완료되었습니다![/green]")
+            console.print("\n[yellow]다음 단계:[/yellow]")
+            console.print("1. GitHub 토큰 설정: export GITHUB_TOKEN=your_token")
+            console.print("2. 저장소 정보 설정:")
+            console.print("   cc config set repository.owner your-github-username")
+            console.print("3. Git 원격 저장소 설정:")
+            console.print("   git remote add origin https://github.com/your-github-username/your-repo-name.git")
+            console.print("   git push -u origin main")
+            return True
             
-            # 설정 저장
-            if config_manager.update_config({
-                'ci': {
-                    'provider': structure.ci_provider,
-                    'branch_strategy': structure.branch_strategy,
-                    'language': structure.language,
-                    'framework': structure.framework,
-                    'test_framework': structure.test_framework,
-                    'project_root': str(Path.cwd()),
-                    'pipeline_stages': []
-                }
-            }, force=force):
-                console.print("[green]CI/CD 설정이 저장되었습니다[/green]")
-                return True
-            else:
-                console.print("[red]CI/CD 설정 저장 중 오류가 발생했습니다[/red]")
-                return False
-                
     except Exception as e:
-        console.print(f"[red]CI/CD 설정 생성 중 오류 발생: {str(e)}[/red]")
+        console.print(f"[red]설정 저장 중 오류 발생: {str(e)}[/red]")
         return False

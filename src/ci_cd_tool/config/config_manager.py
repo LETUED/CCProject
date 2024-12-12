@@ -12,11 +12,6 @@ from ..core.exceptions import ConfigError
 from .storage.base import ConfigStorage
 from .storage.local import LocalConfigStorage
 
-# 설정 파일 경로
-# CONFIG_FILE = "ci_cd_tool/config/config_test.yml"
-CONFIG_FILE = "ci_cd_tool/config/config.yml"
-console = Console()
-
 @dataclass
 class ToolConfig:
     """도구 설정 정보"""
@@ -36,8 +31,8 @@ class CIConfiguration:
     gitlab_stages: Optional[List[str]] = None
 
 class ConfigurationManager:
-    def __init__(self, storage: Optional[ConfigStorage] = None):
-        self.storage = storage or LocalConfigStorage()
+    def __init__(self, config_path: str = None):
+        self.config_path = config_path or os.path.join(str(Path.home()), '.config', 'cc', 'config.yml')
         self.console = Console()
         
     def get_default_config(self) -> Dict[str, Any]:
@@ -55,54 +50,56 @@ class ConfigurationManager:
                 'remote_repo': None
             },
             'cd': {
-                'environments': {
-                    'dev': {
-                        'region': 'ap-northeast-2',
-                        'instance_type': 't2.micro',
-                        'ami_id': 'ami-0c9c942bd7bf113a2'
-                    },
-                    'staging': {
-                        'region': 'ap-northeast-2',
-                        'instance_type': 't2.small',
-                        'ami_id': 'ami-0c9c942bd7bf113a2'
-                    },
-                    'prod': {
-                        'region': 'ap-northeast-2',
-                        'instance_type': 't2.medium',
-                        'ami_id': 'ami-0c9c942bd7bf113a2'
-                    }
-                }
+                'provider': 'aws',
+                'region': 'us-east-1'
             },
-            'test': {
-                'root_dir': 'unittest',
-                'modules': [],
-                'patterns': ['test_*.py'],
-                'options': {
-                    'verbosity': 2,
-                    'failfast': False
-                }
+            'project': {
+                'name': Path.cwd().name,
+                'type': 'Python',
+                'framework': None
+            },
+            'repository': {
+                'owner': '',  # GitHub 사용자명
+                'name': Path.cwd().name  # 현재 디렉토리 이름
             }
         }
 
-    def load(self) -> Optional[Dict[str, Any]]:
-        """설정 로드"""
-        return self.storage.load()
-            
+    def set_repository_info(self, owner: str, name: str = None) -> bool:
+        """저장소 정보 설정"""
+        try:
+            config = self.load() or self.get_default_config()
+            config['repository']['owner'] = owner
+            if name:
+                config['repository']['name'] = name
+            return self.save(config)
+        except Exception as e:
+            raise ConfigError(f"저장소 정보 설정 실패: {str(e)}")
+
+    def load(self) -> Dict[str, Any]:
+        """설정 파일 로드"""
+        try:
+            if os.path.exists(self.config_path):
+                with open(self.config_path, 'r') as f:
+                    return yaml.safe_load(f) or {}
+            return {}
+        except Exception as e:
+            raise ConfigError(f"설정 파일 로드 실패: {str(e)}")
+
     def save(self, config: Dict[str, Any]) -> bool:
         """설정 저장"""
-        return self.storage.save(config)
+        try:
+            os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
+            with open(self.config_path, 'w') as f:
+                yaml.dump(config, f)
+            return True
+        except Exception as e:
+            raise ConfigError(f"설정 저장 실패: {str(e)}")
 
     def update_config(self, new_config: Dict[str, Any], force: bool = False) -> bool:
         """설정 업데이트"""
-        current = self.load() or {}
+        current = self.load()
         if not force:
-            for section, values in new_config.items():
-                if section not in current:
-                    current[section] = {}
-                if isinstance(values, dict):
-                    self._deep_update(current[section], values)
-                else:
-                    current[section] = values
+            self._deep_update(current, new_config)
         else:
             current = new_config
         return self.save(current)
@@ -116,16 +113,15 @@ class ConfigurationManager:
                 d[k] = v
         return d
 
-    def get_section_config(self, section: str, subsection: Optional[str] = None) -> Optional[Dict[str, Any]]:
-        """특정 섹션의 설정 조회"""
+    def get_section_config(self, section: Optional[str] = None) -> Optional[Dict]:
+        """특정 섹션의 설정을 반환"""
         config = self.load()
         if not config:
             return None
             
-        section_config = config.get(section, {})
-        if subsection:
-            return section_config.get(subsection)
-        return section_config
+        if section:
+            return config.get(section)
+        return config
 
     def get_ci_config(self) -> CIConfiguration:
         """CI 설정을 CIConfiguration 객체로 반환"""
@@ -148,11 +144,9 @@ def change_config(key, value):
     """설정 파일의 특정 값을 변경"""
     config_manager = ConfigurationManager()
     config = config_manager.load()
-    config_dict = config.to_dict()
-    config_dict[key] = value
-    config_manager.save(Configuration.from_dict(config_dict))
+    config[key] = value
+    config_manager.save(config)
     click.echo(f"'{key}' 값이 '{value}'로 설정되었습니다.")
-
 
 # 설정 파일 초기화 기능
 def reset_config():
