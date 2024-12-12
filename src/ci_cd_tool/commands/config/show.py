@@ -1,52 +1,56 @@
 import click
+from rich.table import Table
 from ..base import BaseCommand
 from ...core.exceptions import error_handler
-from ...config.manager import ConfigManager
-from rich.table import Table
-from typing import Optional
+from ...config.config_manager import ConfigManager
 
 class ShowCommand(BaseCommand):
-    def execute(self, section: Optional[str] = None) -> bool:
+    """설정 표시 명령어"""
+    
+    def execute(self, section: str = None) -> bool:
         try:
-            config_manager = ConfigManager()
-            config = config_manager.get_section_config(section) if section else config_manager.load()
+            config = ConfigManager()
             
-            if not config:
-                self.error("설정을 찾을 수 없습니다")
-                return False
-                
-            if section == 'cd':
-                return self._show_cd_config(config)
+            if section:
+                self.info(f"{section} 설정 표시")
+                config_data = config.get_value(section)
+                if not config_data:
+                    self.warning(f"{section} 설정이 없습니다")
+                    return True
             else:
-                self.console.print(config)
+                self.info("전체 설정 표시")
+                config_data = config.config
+            
+            self._display_config(config_data, section)
             return True
                 
         except Exception as e:
-            self.error(f"설정 표시 중 오류 발생: {str(e)}")
+            self.error(f"설정 표시 실패: {str(e)}")
             return False
             
-    def _show_cd_config(self, config: dict) -> bool:
-        table = Table(title="CD 설정")
-        table.add_column("환경", style="cyan")
-        table.add_column("리전", style="magenta")
-        table.add_column("인스턴스 타입", style="green")
-        table.add_column("AMI ID", style="yellow")
+    def _display_config(self, config: dict, section: str = None):
+        """설정을 테이블로 표시"""
+        table = Table(title=f"{'전체' if not section else section.upper()} 설정")
         
-        for env_name, env_config in config.get('environments', {}).items():
-            table.add_row(
-                env_name,
-                env_config.get('region', 'ap-northeast-2'),
-                env_config.get('instance_type', 't2.micro'),
-                env_config.get('ami_id', '')
-            )
-                
+        table.add_column("설정", style="cyan")
+        table.add_column("값", style="green")
+        
+        def add_rows(data, prefix=''):
+            for key, value in data.items():
+                if isinstance(value, dict):
+                    add_rows(value, f"{prefix}{key}.")
+                else:
+                    table.add_row(f"{prefix}{key}", str(value))
+                    
+        add_rows(config)
         self.console.print(table)
-        return True
 
 @click.command()
 @click.option('--section', help='설정 섹션 지정 (예: ci, cd, test)')
 @error_handler()
-def show(section: Optional[str]):
+def show(section: str = None):
     """현재 설정 표시"""
     command = ShowCommand()
-    return command.execute(section) 
+    return command.execute(section)
+
+__all__ = ['show'] 

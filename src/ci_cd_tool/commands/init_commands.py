@@ -1,16 +1,11 @@
 import click
+from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import Confirm
 from ..analyzer.project_analyzer import ProjectAnalyzer
-from ..templates.ci_generator import CIGenerator
+from ..config.config_manager import ConfigManager
 from ..core.exceptions import error_handler
-from ..core.logging import setup_logging
-from ..config.config_manager import ConfigManager as ConfigurationManager
-from pathlib import Path
-
-# 로깅 설정
-setup_logging()
 
 @click.command(name='init')
 @click.option('--force', is_flag=True, help="기존 설정 덮어쓰기")
@@ -42,14 +37,14 @@ def init(force: bool):
     console.print(table)
     
     # 3. 기존 설정 확인
-    config_manager = ConfigurationManager()
-    existing_config = config_manager.load()
+    config_manager = ConfigManager()
+    existing_config = config_manager.config
     
     if existing_config and not force:
         if not Confirm.ask("[yellow]이미 설정이 존재합니다. 덮어쓰시겠습니까?[/yellow]"):
             console.print("[yellow]설정을 유지합니다.[/yellow]")
             return False
-    
+            
     # 4. 설정 저장
     try:
         config = {
@@ -67,17 +62,21 @@ def init(force: bool):
             }
         }
         
-        if config_manager.save(config):
-            console.print("[green]✨ CI/CD 설정이 완료되었습니다![/green]")
-            console.print("\n[yellow]다음 단계:[/yellow]")
-            console.print("1. GitHub 토큰 설정: export GITHUB_TOKEN=your_token")
-            console.print("2. 저장소 정보 설정:")
-            console.print("   cc config set repository.owner your-github-username")
-            console.print("3. Git 원격 저장소 설정:")
-            console.print("   git remote add origin https://github.com/your-github-username/your-repo-name.git")
-            console.print("   git push -u origin main")
-            return True
+        for key, value in config.items():
+            config_manager.set_value(key, value)
+            
+        console.print("[green]✨ CI/CD 설정이 완료되었습니다![/green]")
+        console.print("\n[yellow]다음 단계:[/yellow]")
+        console.print("1. GitHub 토큰 설정: export GITHUB_TOKEN=your_token")
+        console.print("2. 저장소 정보 설정:")
+        console.print("   cc config set repository.owner your-github-username")
+        console.print("3. Git 원격 저장소 설정:")
+        console.print("   git remote add origin https://github.com/your-github-username/your-repo-name.git")
+        console.print("   git push -u origin main")
+        return True
             
     except Exception as e:
         console.print(f"[red]설정 저장 중 오류 발생: {str(e)}[/red]")
         return False
+
+__all__ = ['init']

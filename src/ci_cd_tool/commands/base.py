@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from rich.console import Console
 from ..core.container import Container
+from ..config.config_manager import ConfigManager
 from ..core.logging import setup_logging
 from ..core.exceptions import CommandError
 import logging
@@ -11,6 +12,7 @@ class BaseCommand(ABC):
     def __init__(self):
         self.console = Console()
         self.container = Container()
+        self.config = ConfigManager()
         self.logger = logging.getLogger(self.__class__.__name__)
         setup_logging()
     
@@ -32,7 +34,7 @@ class BaseCommand(ABC):
     def error(self, message: str):
         """에러 메시지 출력"""
         self.logger.error(message)
-        self.console.print(f"[red]{message}[/red]")
+        self.console.print(f"[red]Error: {message}[/red]")
         raise CommandError(message)
     
     @abstractmethod

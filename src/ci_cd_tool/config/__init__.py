@@ -1,9 +1,3 @@
-from .config import Config
-from .storage import ConfigStorage, LocalConfigStorage, AWSCredentialsManager
+from .config_manager import ConfigManager
 
-__all__ = [
-    'Config',
-    'ConfigStorage',
-    'LocalConfigStorage',
-    'AWSCredentialsManager'
-]
+__all__ = ['ConfigManager']

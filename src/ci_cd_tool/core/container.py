@@ -1,34 +1,22 @@
 from dependency_injector import containers, providers
+from ..config.config_manager import ConfigManager
 from ..services.ci_service import CIService
-from ..config.config_manager import ConfigurationManager
-from rich.console import Console
-from ..services.status_service import StatusService
-from ..services.test_service import TestService
-from ..services.deploy_service import DeployService
-from .cd import CDService
+from ..services.cd_service import CDService
 
-class Container:
-    def __init__(self):
-        self._console = Console()
-        self._services = {}
-        self._test_service = None
-        self._deploy_service = None
+class Container(containers.DeclarativeContainer):
+    """DI 컨테이너"""
     
-    def status_service(self):
-        if 'status_service' not in self._services:
-            self._services['status_service'] = StatusService(self._console)
-        return self._services['status_service']
+    config = providers.Singleton(ConfigManager)
     
-    def test_service(self) -> TestService:
-        if not self._test_service:
-            self._test_service = TestService(self._console)
-        return self._test_service
+    ci_service = providers.Singleton(
+        CIService,
+        config=config
+    )
     
-    def deploy_service(self) -> DeployService:
-        if not self._deploy_service:
-            self._deploy_service = DeployService(self._console)
-        return self._deploy_service
-    
-    def cd_service(self) -> CDService:
-        return CDService()
+    cd_service = providers.Singleton(
+        CDService,
+        config=config
+    )
+
+__all__ = ['Container']
     

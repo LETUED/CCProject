@@ -33,7 +33,7 @@ class PushCommand(BaseCommand):
             
             self.success(f"버전 {version}이 성공적으로 푸시되었습니다.")
             return True
-            
+                
         except subprocess.CalledProcessError as e:
             self.error(f"명령어 실행 실패: {e.stderr if e.stderr else str(e)}")
             return False
@@ -45,7 +45,9 @@ class PushCommand(BaseCommand):
 @click.argument('version')
 @click.option('--env', help='환경 (dev/staging/prod)')
 @error_handler()
-def push(version: str, env: str):
+def push_command(version: str, env: str = None):
     """새로운 버전을 ECR에 푸시"""
     command = PushCommand()
-    return command.execute(version, env) 
+    return command.execute(version, env)
+
+__all__ = ['push_command'] 

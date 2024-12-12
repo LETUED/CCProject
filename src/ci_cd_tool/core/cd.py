@@ -5,6 +5,7 @@ from ..config import Config
 from .base_service import BaseService
 from ..config.storage.base import AWSCredentialsManager
 import os
+from typing import Optional
 
 class CDService(BaseService):
     """CD(Continuous Deployment) 서비스 클래스"""
@@ -43,10 +44,23 @@ class CDService(BaseService):
             )
             self.logger.info(f"ECR 클라이언트 생성됨 - 실제 사용 리전: {self._ecr_client.meta.region_name}")
         return self._ecr_client
-        
-    def list_versions(self, repository_name: str = 'cc-repo'):
+
+    def list_repositories(self):
+        """ECR 리포지토리 목록을 조회합니다"""
+        try:
+            response = self.ecr_client.describe_repositories()
+            return response['repositories']
+        except Exception as e:
+            self.logger.error(f"리포지토리 목록 조회 실패: {str(e)}")
+            raise
+
+    def list_versions(self, repository_name: Optional[str] = None):
         """배포된 버전 목록을 조회합니다"""
         try:
+            # repository_name이 None이면 기본값 사용
+            if repository_name is None:
+                repository_name = self.config.get('ecr_repository', 'cc-repo')
+            
             self.logger.info(f"ECR 리포지토리 {repository_name}의 이미지 목록 조회 중...")
             
             response = self.ecr_client.describe_images(
@@ -58,7 +72,11 @@ class CDService(BaseService):
             error_msg = str(e)
             self.logger.error(f"버전 목록 조회 중 오류 발생: {error_msg}")
             raise DeployError(error_msg)
-            
+
+    def list_images(self, repository_name=None):
+        """리포지토리의 이미지 목록을 조회합니다"""
+        return self.list_versions(repository_name)
+
     def deploy(self, version: str):
         """지정된 버전을 배포합니다"""
         try:

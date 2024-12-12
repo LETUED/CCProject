@@ -24,11 +24,13 @@ class DeployCommand(BaseCommand):
             self.error(f"배포 실패: {str(e)}")
             return False
 
-@click.command()
+@click.command(name='deploy')
 @click.option('--env', required=True, help='배포할 환경 설정')
 @click.option('--version', required=True, help='배포할 버전')
 @error_handler()
-def deploy(env: str, version: str):
+def deploy_command(env: str, version: str):
     """환경별 배포 실행"""
     command = DeployCommand()
-    return command.execute(env, version) 
+    return command.execute(env, version)
+
+__all__ = ['deploy_command'] 

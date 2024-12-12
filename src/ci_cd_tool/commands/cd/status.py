@@ -33,11 +33,11 @@ class StatusCommand(BaseCommand):
                         self.warning(f"{env_name} 환경 상태 조회 실패: {str(e)}")
             
             return True
-            
+                
         except Exception as e:
             self.error(f"상태 조회 중 오류 발생: {str(e)}")
             return False
-            
+
     def _show_env_status(self, env: str, cd_service) -> None:
         # 클러스터 이름 생성
         cluster_name = f"cc-cluster-{env}"
@@ -84,10 +84,12 @@ class StatusCommand(BaseCommand):
         self.console.print(table)
         self.console.print("")  # 빈 줄 추가
 
-@click.command()
+@click.command(name='status')
 @click.option('--env', help='환경 지정 (생략시 전체 환경)')
 @error_handler()
-def status(env: Optional[str]):
+def status_command(env: Optional[str] = None):
     """CD 상태 확인"""
     command = StatusCommand()
-    return command.execute(env) 
+    return command.execute(env)
+
+__all__ = ['status_command'] 

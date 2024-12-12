@@ -1,39 +1,31 @@
-from dataclasses import dataclass
-from typing import Dict, Optional
-import yaml
 import os
+import yaml
 from pathlib import Path
 
-@dataclass
 class Config:
-    """CI/CD 도구 설정"""
-    ci_provider: str = "github"
-    cd_provider: str = "github"
-    project_name: str = ""
-    repository_url: str = ""
-    environment: str = "development"
+    def __init__(self, config_path=None):
+        self.config_path = config_path or os.path.expanduser('~/.cc/config.yml')
+        self.config = self._load_config()
 
-    @classmethod
-    def from_dict(cls, data: Dict) -> 'Config':
-        return cls(
-            ci_provider=data.get('ci', {}).get('provider', 'github'),
-            cd_provider=data.get('cd', {}).get('provider', 'github'),
-            project_name=data.get('project', {}).get('name', ''),
-            repository_url=data.get('project', {}).get('repository', ''),
-            environment=data.get('environment', 'development')
-        )
+    def _load_config(self):
+        """설정 파일 로드"""
+        if not os.path.exists(self.config_path):
+            return {}
+            
+        with open(self.config_path, 'r') as f:
+            return yaml.safe_load(f) or {}
 
-    def to_dict(self) -> Dict:
-        return {
-            'ci': {
-                'provider': self.ci_provider
-            },
-            'cd': {
-                'provider': self.cd_provider
-            },
-            'project': {
-                'name': self.project_name,
-                'repository': self.repository_url
-            },
-            'environment': self.environment
-        }
+    def get(self, key, default=None):
+        """설정값 조회"""
+        return self.config.get(key, default)
+
+    def set(self, key, value):
+        """설정값 저장"""
+        self.config[key] = value
+        self._save_config()
+
+    def _save_config(self):
+        """설정 파일 저장"""
+        os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
+        with open(self.config_path, 'w') as f:
+            yaml.dump(self.config, f)
