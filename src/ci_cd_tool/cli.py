@@ -4,7 +4,7 @@ from .commands import init, ci_group, cd_group, config_group, src_group
 from .core.logging import setup_logging
 
 @click.group()
-@click.version_option(version="0.2.6")
+@click.version_option(version="0.3.3", package_name="ci_cd_tool")
 def main():
     """CI/CD 도구 CLI"""
     setup_logging()
