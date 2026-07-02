@@ -1,85 +1,39 @@
-# CI/CD 도구 사용 설명서
+# CI/CD 도구 (ci-cd-tool)
 
-## 목차
-1. [소개](#1-소개)
-2. [설치 및 초기 설정](#2-설치-및-초기-설정)
-3. [명령어 개요](#3-명령어-개요)
-4. [주요 사용 시나리오](#4-주요-사용-시나리오)
+프로젝트를 분석해 CI/CD 파이프라인 설정·배포를 돕는 CLI(`cc`). 2024-2 캡스톤(8조).
 
-## 1. 소개
-이 문서는 CI/CD 도구의 사용법을 설명합니다. 이 도구는 개발자가 CI/CD 파이프라인을 쉽게 설정하고 관리할 수 있도록 돕습니다.
+## 설치
 
-## 2. 설치 및 초기 설정
+> PyPI 배포본(0.3.2)은 패키징 버그로 설치 시 import가 실패한다(재배포 예정). 현재는 소스에서 설치할 것.
 
-### 설치
 ```bash
-pip install ci-cd-tool
+git clone https://github.com/LETUED/CCProject.git
+cd CCProject
+pip install -e .
+cc --help
 ```
 
-### 초기화
-프로젝트를 초기화하여 기본 설정을 생성합니다.
-```bash
-cc init
+## 명령어
+
+실제 등록된 명령 그룹은 5개다 (`cc <그룹> --help`로 옵션 확인):
+
 ```
-**옵션:**
-- `--force`: 기존 설정을 덮어쓰기
-
-## 3. 명령어 개요
-
-### 기본 명령어 구조
-```python:src/ci_cd_tool/cli.py
-startLine: 5
-endLine: 14
+cc init                              프로젝트 분석 및 CI/CD 자동 설정 (--force)
+cc ci    build | test | status       CI 파이프라인
+cc cd    deploy | rollback | status | list | push | init    CD 파이프라인
+cc config init | show                설정
+cc src   init | add | commit | status | push                소스 관리
 ```
 
-### 사용 가능한 주요 명령어 목록
+전체 설계 명세(계획된 명령 포함)는 [docs/기능명세서.docx](docs/기능명세서.docx) 참고 — 일부 명령은 명세에만 있고 아직 구현되지 않았다.
 
-1. **초기화 명령어**
-   ```bash
-   cc init [OPTIONS]
-   ```
+## 예시
 
-2. **CI 관련 명령어** (ci_group)
-   ```bash
-   cc ci build     # 빌드 실행
-   cc ci test      # 테스트 실행
-   cc ci status    # CI 파이프라인 상태 확인
-   ```
-
-3. **CD 관련 명령어** (cd_group)
-   ```bash
-   cc cd deploy    # 배포 실행
-   cc cd rollback  # 이전 버전으로 롤백
-   cc cd status    # 배포 상태 확인
-   cc cd list      # 버전 목록 확인
-   ```
-
-4. **설정 관련 명령어** (config_group)
-   ```bash
-   cc config show           # 현재 설정 표시
-   cc config set KEY VALUE  # 설정 값 변경
-   cc config reset          # 설정 초기화
-   ```
-
-## 4. 주요 사용 시나리오
-
-### 새 프로젝트 설정
 ```bash
 cc init
 cc config show
 cc ci test
-```
-
-### 배포 실행
-```bash
-cc ci build
 cc cd deploy --env prod --version 1.0.0
 cc cd status
-```
-
-### 문제 해결
-```bash
-cc cd status
 cc cd rollback --version 0.9.0
-cc cd status
 ```
