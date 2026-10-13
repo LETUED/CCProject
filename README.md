@@ -42,5 +42,6 @@ cc cd rollback --version 0.9.0
 
 ## 알려진 문제
 
-- **CI 실패 (2026-10 기준)**: 테스트 수집 단계에서 `ImportError: cannot import name 'Config' from 'ci_cd_tool.config'`가 발생한다. `core/cd.py`가 `ci_cd_tool.config`에서 `Config`를 가져오지만 `src/ci_cd_tool/config/__init__.py`에는 없다. 워크플로 문제가 아니라 소스 문제이며, 수정 전까지 `Test`/`CI Pipeline` 워크플로는 실패한다.
-- `test.yml`, `scripts.yml`이 존재하지 않는 `requirements-dev.txt`를 참조한다. 위 import 오류를 고친 뒤 `pip install -e .` 방식으로 바꾸는 것을 권장한다.
+- **CI 실패 (2026-10 기준)**: 테스트 약 30개 중 대부분이 실패한다. 개발 중 서비스 구조(`Container`의 `test_service`·`deploy_service` 등)를 리팩터링했지만 **테스트가 옛 구조 기준으로 남아 있기 때문**이다. 테스트를 새 구조에 맞춰 다시 써야 한다.
+- 해결한 문제: `core/cd.py`의 `Config` ImportError는 `config/__init__.py`에서 `Config`를 내보내 고쳤고, 삭제된 모듈을 가리키던 테스트 파일은 제거했다.
+- `test.yml`, `scripts.yml`이 존재하지 않는 `requirements-dev.txt`를 참조한다. `pip install -e .` 방식으로 바꾸는 것을 권장한다.
