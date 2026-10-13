@@ -22,6 +22,9 @@
 # README 파일 허용
 !README.md
 
+# LICENSE 파일 허용
+!LICENSE
+
 # requirements 파일 허용
 !requirements.txt
 
