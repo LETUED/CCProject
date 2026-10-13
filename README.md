@@ -39,3 +39,8 @@ cc cd rollback --version 0.9.0
 ## 상태
 
 캡스톤 제출 완료 (46커밋, GitHub Actions CI, PyPI 배포 스크립트, Release v1.3.0). PyPI 배포본은 0.3.2에서 패키징 버그로 깨져 있어 재배포 예정이며, 그전까지는 소스 설치를 권장한다.
+
+## 알려진 문제
+
+- **CI 실패 (2026-10 기준)**: 테스트 수집 단계에서 `ImportError: cannot import name 'Config' from 'ci_cd_tool.config'`가 발생한다. `core/cd.py`가 `ci_cd_tool.config`에서 `Config`를 가져오지만 `src/ci_cd_tool/config/__init__.py`에는 없다. 워크플로 문제가 아니라 소스 문제이며, 수정 전까지 `Test`/`CI Pipeline` 워크플로는 실패한다.
+- `test.yml`, `scripts.yml`이 존재하지 않는 `requirements-dev.txt`를 참조한다. 위 import 오류를 고친 뒤 `pip install -e .` 방식으로 바꾸는 것을 권장한다.
